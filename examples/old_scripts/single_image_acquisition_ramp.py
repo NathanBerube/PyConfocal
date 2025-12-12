@@ -1,9 +1,9 @@
-from pitaya_confocal.pitaya_confocal import SCPIController
-from pitaya_confocal.pitaya_confocal import DigitalPin
-from pitaya_confocal.pitaya_confocal import AcquisitionController
-from pitaya_confocal.pitaya_confocal import AcquisitionPort
-from pitaya_confocal.pitaya_confocal import GeneratorPort
-from pitaya_confocal.pitaya_confocal import GeneratorController
+from pyconfocal import SCPIController
+from pyconfocal import DigitalPin
+from pyconfocal import AcquisitionController
+from pyconfocal import AcquisitionPort
+from pyconfocal import GeneratorPort
+from pyconfocal import GeneratorController
 import numpy as np
 import time
 from PIL import Image

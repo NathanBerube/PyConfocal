@@ -1,12 +1,11 @@
 from pyconfocal import ConfocalMicroscope
-from .get_ip import get_IP
 from PIL import Image
 from datetime import datetime
 from os.path import join
 
 
 saving_path = "/Users/nathan/Downloads"
-IP = get_IP()
+IP = ''
 trigger_pin_name = 'DIO0_P'
 waveform_amplitude = 1
 image_size = 128

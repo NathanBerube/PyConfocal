@@ -1,8 +1,7 @@
 from pyconfocal import ConfocalMicroscope
-from .get_ip import get_IP
 
 
-IP = get_IP()
+IP = ''
 trigger_pin_name = 'DIO0_P'
 waveform_amplitude = 0.5
 image_size = 128
