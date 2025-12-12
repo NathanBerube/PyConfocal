@@ -4,10 +4,11 @@ from datetime import datetime
 from os.path import join
 
 
-saving_path = "/Users/nathan/Downloads"
-IP = ''
+saving_path = "" # add your saving path
+IP = '' # add your red pitaya IP address
+
 trigger_pin_name = 'DIO0_P'
-waveform_amplitude_array = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+fov_ratio_array = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 image_size = 512
 decimation = 8192//4
 
@@ -17,8 +18,8 @@ microscope = ConfocalMicroscope(IP, trigger_pin_name)
 microscope.set_image_size(image_size)
 microscope.set_decimation(decimation)
 
-for waveform_amplitude in waveform_amplitude_array:
-    microscope.set_waveform_amplitude(waveform_amplitude)
+for fov_ratio in fov_ratio_array:
+    microscope.set_fov_ratio(fov_ratio)
 
     # reset and configure the function generator of the microscope
     # reset and configure acquisition module of the microscope
@@ -31,7 +32,7 @@ for waveform_amplitude in waveform_amplitude_array:
     # get the current date and time for image name
     current_time = datetime.now().strftime("%H_%M_%S_%f")
     # image_name = f"calibration_fov_488nm_{waveform_amplitude*100}_dec_{decimation}.png"
-    image_name = f"rhizhome_488nm_fov_{waveform_amplitude}.png"
+    image_name = f"rhizhome_488nm_fov_{fov_ratio}.png"
 
     # convert image to grayscale png
     pil_img_gray = Image.fromarray(image)

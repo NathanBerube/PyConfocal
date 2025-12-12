@@ -50,7 +50,7 @@ class ConfocalMicroscope:
 
         self.image_size = 128
         self.decimation = 8192
-        self.amplitude = 0.5
+        self.fov_ratio = 0.5
         self.buffer_size = 16384
 
     def set_decimation(self, decimation: int) -> None:
@@ -83,25 +83,25 @@ class ConfocalMicroscope:
         
         self.decimation = decimation
 
-    def set_waveform_amplitude(self, amplitude: float) -> None:
+    def set_fov_ratio(self, fov_ratio: float) -> None:
         """        
-        Set the normalized amplitude of the waveforms generated
+        Set the fov ratio. Related to the normalized amplitude of the functions generated
 
         Parameters
         ----------
-        amplitude : float
-            Amplitude of the waveforms to control the FOV of the microscope
+        fov_ratio: float
+            FOV ratio of the microscope
 
         Raises
         ------
         ValueError
-            If the amplitude is outside of the possible range.
+            If the fov is outside of the possible range.
         """
 
-        if not 0 <= amplitude <= 1:
-            raise ValueError("Waveform amplitude should be between 0 and 1")
+        if not 0 <= fov_ratio <= 1:
+            raise ValueError("FOV ratio should be between 0 and 1")
 
-        self.amplitude = amplitude
+        self.fov_ratio = fov_ratio
 
     def set_image_size(self, image_size: int) -> None:
         """        
@@ -262,7 +262,7 @@ class ConfocalMicroscope:
         self.fast_port.set_waveform(data_str_fast)          # must come before setting type
         self.fast_port.set_waveform_type("ARBITRARY")
         self.fast_port.set_fequency(freq_fast)
-        self.fast_port.set_amplitude(self.amplitude)
+        self.fast_port.set_amplitude(self.fov_ratio)
 
         # slow waveform will be set during acquisition since it is changing for each block
 
@@ -339,7 +339,7 @@ class ConfocalMicroscope:
             self.slow_port.set_waveform(data_str_slow)          # must come before setting type
             self.slow_port.set_waveform_type("ARBITRARY")
             self.slow_port.set_fequency(freq_slow)
-            self.slow_port.set_amplitude(self.amplitude)
+            self.slow_port.set_amplitude(self.fov_ratio)
             self.slow_port.set_default_last_voltage(signal_slow[i,-1])
 
             # Acquisition settings

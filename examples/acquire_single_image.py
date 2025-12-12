@@ -4,10 +4,11 @@ from datetime import datetime
 from os.path import join
 
 
-saving_path = "/Users/nathan/Downloads"
-IP = ''
+saving_path = "" # add your saving path
+IP = '' # add your red pitaya IP address
+
 trigger_pin_name = 'DIO0_P'
-waveform_amplitude = 1
+fov_ratio = 1
 image_size = 128
 decimation = 8192//2
 
@@ -16,7 +17,7 @@ microscope = ConfocalMicroscope(IP, trigger_pin_name)
 
 microscope.set_image_size(image_size)
 microscope.set_decimation(decimation)
-microscope.set_waveform_amplitude(waveform_amplitude)
+microscope.set_fov_ratio(fov_ratio)
 
 # reset and configure the function generator of the microscope
 # reset and configure acquisition module of the microscope
