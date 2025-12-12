@@ -2,6 +2,7 @@ from pyconfocal import ConfocalMicroscope
 
 
 IP = '' # add your red pitaya IP address
+
 trigger_pin_name = 'DIO0_P'
 fov_ratio = 0.5
 image_size = 128
