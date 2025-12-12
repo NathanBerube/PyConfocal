@@ -15,8 +15,7 @@ dependencies = [
     "numpy",
     "matplotlib",
     "Pillow",
-    "tqdm",
-    "scipy"
+    "tqdm"
 ]
 keywords = ["confocal", "microscope", "red pitaya"]
 license = {text = "MIT"}
