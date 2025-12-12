@@ -23,5 +23,5 @@ license = {text = "MIT"}
 urls = { "Homepage" = "https://github.com/yourusername/pyconfocal" }
 
 [tool.setuptools.packages.find]
-where = ["pyconfocal"]
+where = ["."]
 
