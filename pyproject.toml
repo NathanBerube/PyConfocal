@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyconfocal"
+version = "0.1.0"
+description = "Python package for controlling a confocal microscope via Red Pitaya"
+readme = "README.md"
+requires-python = "==3.11.*"
+authors = [
+    {name = "Nathan Bérubé", email = "nathan.berube.1@ulaval.ca"}
+]
+dependencies = [
+    "numpy",
+    "matplotlib",
+    "Pillow",
+    "tqdm",
+    "scipy"
+]
+keywords = ["confocal", "microscope", "red pitaya"]
+license = {text = "MIT"}
+urls = { "Homepage" = "https://github.com/yourusername/pyconfocal" }
+
+[tool.setuptools.packages.find]
+where = ["pyconfocal"]
+
