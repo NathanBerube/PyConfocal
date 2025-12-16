@@ -11,11 +11,13 @@ from PIL import Image
 from datetime import datetime
 
 """
-Script implementing a very simple way to sweep across all lines
+Script implementing a very simple way to sweep across all lines with triangle waveforms
 
-This is only possible for a small image to acquire an entire image in less than 1 seconds.
+Image quality is not great since perfect synchronisation can't be achieved. 
+
+** The script acquire_single_image.py should be used instead with appropriate image size. This code was written before developing 
+the ConfocalMicroscope class. ***
 """
-
 save = True # set to true to save the captured image
 
 # decimation : length of the buffer in seconds

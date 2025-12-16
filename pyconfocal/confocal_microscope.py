@@ -286,7 +286,7 @@ class ConfocalMicroscope:
 
     def trigger_acquisition(self) -> None:
         """
-        Emit a trigger pulse on the digital pin (HIGH → LOW).
+        Emit a trigger pulse on the trigger digital pin (HIGH → LOW).
         Used to start waveform generation and data capture.
         """
         self.trigger_pin.set_high()

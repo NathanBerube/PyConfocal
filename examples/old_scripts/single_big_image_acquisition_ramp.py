@@ -14,7 +14,10 @@ from datetime import datetime
 
 
 """
-Script implementing a very simple way to sweep across all lines in 16 blocks using the scope buffer
+Script implementing a very simple way to sweep across all lines in 16 blocks using the scope buffer with ramp waveforms
+
+** The script acquire_single_image.py should be used instead with appropriate image size. This code was written before developing 
+the ConfocalMicroscope class. ***
 """
 save = True # set to true to save the captured image
 

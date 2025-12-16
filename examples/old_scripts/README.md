@@ -1,0 +1,1 @@
+The scripts in this folder are not meant to be used. They were first used to write the ConfocalMicroscope class and doing some tests. They are only in the PyConfocal package as reference for further development. The ConfocalMicroscope is way better, use it:) 

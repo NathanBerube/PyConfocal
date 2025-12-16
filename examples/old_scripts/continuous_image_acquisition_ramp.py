@@ -12,6 +12,11 @@ import time
 Script implementing a very simple way to sweep across all lines
 
 This is only possible for a small image to acquire an entire image in less than 1 seconds.
+
+Continous acquisition mode with ramp waveforms.
+
+** The script continuous_imaging.py should be used instead. This code was written before developing 
+the ConfocalMicroscope class. ***
 """
 
 IP = "Red Pitaya IP address"
