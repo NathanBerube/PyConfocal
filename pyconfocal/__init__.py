@@ -1,4 +1,5 @@
 # pitaya_code/__init__.py
+# used to simplify imports in other files and indicate to Pyhton to treat it as a package
 from .confocal_microscope import ConfocalMicroscope
 from .scpi_controller import SCPIController
 from .acquisition_controller import AcquisitionController

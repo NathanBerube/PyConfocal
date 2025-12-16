@@ -11,6 +11,12 @@ class GeneratorPort:
     generator channel, including waveform configuration, frequency and
     amplitude control, burst mode settings, and trigger configuration.
 
+    The class is meant to simplify the SCPI commands sending to the Red Pitaya.
+    Not all the possible commands are implemented.
+
+    It is recommended to read the list of supported SCPI commands from the Red 
+    Pitaya website to get all details.
+
     Parameters
     ----------
     port_number : int
@@ -28,7 +34,7 @@ class GeneratorPort:
 
     def __init__(self, port_number: int, red_pitaya_scpi: SCPIController) -> None:
         """
-        Initialize the generator port wrapper.
+        Initialize the generator port.
 
         Parameters
         ----------
@@ -42,7 +48,9 @@ class GeneratorPort:
 
     def set_waveform(self, waveform: str) -> None:
         """
-        Load custom waveform data into the generator buffer.
+        Load custom waveform data into the generator buffer. Should be called before setting
+        the waveform type to arbitrary. The waveform must contain 16 384 points or the frequency
+        will be affected.
 
         Parameters
         ----------
@@ -59,7 +67,11 @@ class GeneratorPort:
 
     def set_waveform_type(self, waveform_type: str) -> None:
         """
-        Set the generator waveform type.
+        Set the generator waveform type. "ARBITRARY" should be specified after setting a waveform
+        to generate a custom signal. Should always be called after setting the waveform.
+
+        Other built-in waveform type can be used. See documentation for more details.
+
 
         Parameters
         ----------
@@ -74,7 +86,8 @@ class GeneratorPort:
 
     def set_fequency(self, frequency: int) -> None:
         """
-        Set the generator output frequency.
+        Set the generator output frequency. The period (1/frequency) will dictate the
+        time-length of the generated waveform.
 
         Parameters
         ----------
@@ -89,7 +102,7 @@ class GeneratorPort:
     
     def set_amplitude(self, amplitude: float) -> None:
         """
-        Set the output amplitude of the generator channel.
+        Set the output amplitude of the generator channel (-1 to 1 for StemLab 125-14).
 
         Parameters
         ----------
@@ -160,7 +173,7 @@ class GeneratorPort:
 
     def set_trigger_mode(self, trigger_mode: str) -> None:
         """
-        Configure the trigger source for burst mode or waveform initiation.
+        Configure the trigger mode for burst mode or waveform initiation.
 
         Parameters
         ----------
@@ -191,7 +204,8 @@ class GeneratorPort:
 
     def set_default_initial_voltage(self, voltage: float) -> None:
         """
-        Set the initial output voltage level before waveform or burst generation.
+        Set the initial output voltage level before waveform or burst generation
+        , but after enabling output. (-1 to 1 for StemLab 125-14)
 
         Parameters
         ----------
@@ -208,7 +222,8 @@ class GeneratorPort:
 
     def set_default_last_voltage(self, voltage: float) -> None:
         """
-        Set the final output voltage level after a burst sequence ends.
+        Set the final output voltage level after a burst sequence ends
+        (-1 to 1 for StemLab 125-14)
 
         Parameters
         ----------

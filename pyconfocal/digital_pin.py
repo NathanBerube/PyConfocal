@@ -9,6 +9,12 @@ class DigitalPin:
     an output and driving it high or low. It directly wraps the SCPI commands
     used by the Red Pitaya API.
 
+    The class is meant to simplify the SCPI commands sending to the Red Pitaya.
+    Not all the possible commands are implemented.
+
+    It is recommended to read the list of supported SCPI commands from the Red 
+    Pitaya website to get all details.
+
     Parameters
     ----------
     pin_name : str
@@ -48,7 +54,15 @@ class DigitalPin:
         Sends
         -----
         DIG:PIN:DIR OUT,<pin_name>
+
+        Raises
+        -----
+        ValueError : Pin direction is not in supported directions 
         """
+
+        if direction not in ["IN", "OUT"]:
+            raise ValueError(f"Pin direction {direction} not in allowed directions ('IN' or 'OUT')")
+        
         self.scpi_controller.tx_txt(f"DIG:PIN:DIR {direction},{self.pin_name}")
 
 

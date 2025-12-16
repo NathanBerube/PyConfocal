@@ -18,6 +18,12 @@ class AcquisitionController:
     SCPI controller instance and can manage multiple acquisition ports
     simultaneously.
 
+    The class is meant to simplify the SCPI commands sending to the Red Pitaya.
+    Not all the possible commands are implemented.
+
+    It is recommended to read the list of supported SCPI commands from the Red 
+    Pitaya website to get all details.
+
     Attributes
     ----------
     ports : list of AcquisitionPort
@@ -32,7 +38,7 @@ class AcquisitionController:
     - Data buffers are returned as NumPy arrays for easy numerical processing.
     - All SCPI commands are sent via the provided SCPI controller instance,
         so proper initialization and connection to the Red Pitaya is required.
-    - Port numbering is 1-based when retrieving data buffers.
+    - Port numbering is 1-based when retrieving data buffers (1,2,...).
     """
 
     def __init__(self, red_pitaya_scpi: SCPIController) -> None:
@@ -65,8 +71,8 @@ class AcquisitionController:
         Parameters
         ----------
         trigger_mode : str
-            The trigger mode to set. Examples include 'EXT' for external trigger
-            or 'IMMEDIATE' for immediate acquisition.
+            The trigger mode to set. For example, 'EXT' for external trigger.
+            See Red Pitaya SCPI commands for more details
 
         Notes
         -----
@@ -76,7 +82,7 @@ class AcquisitionController:
 
     def start(self) -> None:
         """
-        Start the acquisition process.
+        Start the acquisition process. The acquisition will be waiting for trigger.
 
         Notes
         -----
@@ -96,7 +102,8 @@ class AcquisitionController:
 
     def reset(self) -> None:
         """
-        Reset the acquisition system to default state.
+        Reset the acquisition system to default state. Should be called before 
+        setting up another acquisition.
 
         Notes
         -----
@@ -111,13 +118,31 @@ class AcquisitionController:
         Parameters
         ----------
         decimation : int
-            The decimation factor to apply. Higher values reduce the effective
-            sample rate.
+            Decimation factor applied to the ADC sampling clock.
+            Must be one of ``[1, 2, 4, 8, 16]`` or any integer between
+            ``17`` and ``65 536`` (inclusive). Values outside this range raise
+            a ``ValueError``.
 
         Notes
         -----
         Sends the SCPI command `ACQ:DEC <decimation>` to the Red Pitaya.
+
+        Raises
+        ------
+        TypeError
+            If ``decimation`` is not an integer.
+        ValueError
+            If the decimation value is outside the supported range.
         """
+
+        if type(decimation) != int:
+            raise TypeError(f"Decimation type should be int.")
+
+        if decimation not in [1, 2, 4, 8, 16] and not (17 <= decimation <= 65536):
+            raise ValueError(
+                f"Decimation of {decimation} is not allowed. "
+                f"Should be one of [1, 2, 4, 8, 16] or any integer between 17 and 65536.")
+
         self.scpi_controller.tx_txt(f'ACQ:DEC:Factor {decimation}')
 
     def set_trigger_delay(self, delay: int) -> None:
@@ -163,6 +188,7 @@ class AcquisitionController:
         -----
         Sends the SCPI command `ACQ:TRIG:EXT:DEBouncer:US <time>` to the Red Pitaya.
         """
+
         self.scpi_controller.tx_txt(f'ACQ:TRIG:EXT:DEBouncer:US {time}')
 
     def set_averaging_state(self, state: str) -> None:
@@ -181,7 +207,16 @@ class AcquisitionController:
         Sends the SCPI command `ACQ:AVG:<state>` to the Red Pitaya.
         Averaging reduces noise by averaging multiple acquisitions, but
         increases the effective acquisition time.
+
+        Raises
+        ------
+        ValueError
+            If state specified is not in allowed states ('ON' or 'OFF').
         """
+
+        if state not in ["ON", "OFF"]:
+            raise ValueError(f"Averaging state {state} is not in allowed values 'ON' or 'OFF'")
+
         self.scpi_controller.tx_txt(f"ACQ:AVG:{state}")
 
     def wait_for_trigger(self) -> None:
@@ -191,7 +226,7 @@ class AcquisitionController:
         Notes
         -----
         Polls the SCPI command `ACQ:TRIG:STAT?` until the status indicates
-        the trigger has occurred. Prints status messages during polling.
+        the trigger has occurred.
         """
         while True:
             self.scpi_controller.tx_txt('ACQ:TRIG:STAT?')
@@ -206,7 +241,6 @@ class AcquisitionController:
         Notes
         -----
         Polls the SCPI command `ACQ:TRIG:FILL?` until the buffer is filled.
-        Prints buffer status messages during polling.
         """
         while True:
             self.scpi_controller.tx_txt('ACQ:TRIG:FILL?')

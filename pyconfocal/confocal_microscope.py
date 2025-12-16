@@ -12,7 +12,7 @@ from tqdm import tqdm
 class ConfocalMicroscope:
     """
     Controller for a confocal scanning microscope based on a
-    Red Pitaya device. This class abstracts:
+    Red Pitaya device. This class controls:
 
     - Generator configuration (fast and slow scanning axes)
     - Acquisition setup and synchronization
@@ -21,7 +21,9 @@ class ConfocalMicroscope:
     - Automated image acquisition (single or multiple)
 
     The class ensures proper synchronization between waveform generation
-    and acquisition to performframe scans.
+    and acquisition to perform frame scans.
+
+    The class was only tested with a StemLab 125-14 Red Pitaya.
     """
 
     def __init__(self, red_pitaya_ip: str, trigger_pin_name: str) -> None:
@@ -35,27 +37,33 @@ class ConfocalMicroscope:
         trigger_pin_name : str
             Name of the digital pin used for external triggering.
         """
+        # SCPI controller object to send SCPI commands to the Red Pitaya
         self.scpi_controller = SCPIController(red_pitaya_ip)
 
+        # Configure a digital pin as external trigger
         self.trigger_pin = DigitalPin(trigger_pin_name, self.scpi_controller)
         self.trigger_pin.reset_all_pins()
         self.trigger_pin.set_direction('OUT')
 
-        self.generator = GeneratorController(self.scpi_controller)
-        self.fast_port = GeneratorPort(1, self.scpi_controller)
-        self.slow_port = GeneratorPort(2, self.scpi_controller)
+        # Objects for the generation of signals to control the sweeping mirrors
+        self.generator = GeneratorController(self.scpi_controller) # controller for general generation commands
+        self.fast_port = GeneratorPort(1, self.scpi_controller) # fast sweeping port
+        self.slow_port = GeneratorPort(2, self.scpi_controller) # slow sweeping port
 
+        # Object to control the acquisition
         self.acquisition = AcquisitionController(self.scpi_controller)
         self.acquisition.add_port(AcquisitionPort(1, self.scpi_controller))
 
-        self.image_size = 128
-        self.decimation = 8192
-        self.fov_ratio = 0.5
-        self.buffer_size = 16384
+        # Default parameters of the microscope
+        self.image_size = 128 # default image size is 128x128
+        self.decimation = 8192 # default decimation is 8192
+        self.fov_ratio = 0.5 # default fov is 0.5 of full fov
+        self.buffer_size = 16384 # size of the buffer for a StemLab 125-14 Red Pitaya, shouldn't be touched
 
     def set_decimation(self, decimation: int) -> None:
         """"
-        Set the decimation factor of the RedPitaya clock
+        Set the decimation factor of the RedPitaya clock to control the sweeping time.
+        A low value would imply a very fast sweeping not approriate for the sweeping mirrors bamdwidth.
 
         Parameters
         ----------
@@ -85,7 +93,8 @@ class ConfocalMicroscope:
 
     def set_fov_ratio(self, fov_ratio: float) -> None:
         """        
-        Set the fov ratio. Related to the normalized amplitude of the functions generated
+        Set the fov ratio. Related to the normalized amplitude of the functions generated.
+        1 is full available fov, 0 is no sweeping.
 
         Parameters
         ----------
@@ -105,7 +114,8 @@ class ConfocalMicroscope:
 
     def set_image_size(self, image_size: int) -> None:
         """        
-        Set the image size in pixels (128, 512 or 1024 are supported)
+        Set the image size in pixels (128, 512 or 1024 are supported for now since they
+        are compatible with a buffer of 16 384 samples for buffer)
 
         Parameters
         ----------
@@ -186,7 +196,7 @@ class ConfocalMicroscope:
 
     def set_up_acquisition(self) -> None:
         """
-        Configure the acquisition module with default settings:
+        Configure the acquisition module with specified settings:
         - Enable averaging
         - Set decimation
         - Set trigger delay
@@ -194,11 +204,11 @@ class ConfocalMicroscope:
         - Debouncer time
         """
         self.acquisition.reset()
-        self.acquisition.set_averaging_state('ON')
-        self.acquisition.set_decimation(self.decimation)
-        self.acquisition.set_trigger_delay(8192) # only get samples after the trigger
-        self.acquisition.set_units('RAW')
-        self.acquisition.set_debouncer_time(100)
+        self.acquisition.set_averaging_state('ON') # should not be touched
+        self.acquisition.set_decimation(self.decimation) # decimation according to specified value
+        self.acquisition.set_trigger_delay(8192) # only get samples after the trigger, should not be touched
+        self.acquisition.set_units('RAW') # get signal in raw data, not volts which is increasing the computation time
+        self.acquisition.set_debouncer_time(100) # standard value to avoid false trigger
 
     def arm_acquisition_trigger(self) -> None:
         """
@@ -214,7 +224,7 @@ class ConfocalMicroscope:
 
     def enable_generator(self) -> None:
         """
-        Enable generator output on all ports.
+        Enable generator output on all ports and wait for trigger.
         """
         self.generator.enable()
 
@@ -227,7 +237,7 @@ class ConfocalMicroscope:
     def set_up_generator_ports(self) -> None:
         """
         Configure both generator ports in burst mode with:
-        - Fast channel: one burst containing `image_size` cycles
+        - Fast channel: one burst containing `buffer_size/image_size` cycles to match unmber of pixels
         - Slow channel: one burst containing one cycle
         - External positive-edge triggering
         - Shared debouncer time
@@ -246,29 +256,34 @@ class ConfocalMicroscope:
 
     def set_up_fast_waveform(self) -> None:
         """
-        Create and upload arbitrary sawtooth waveforms to the fast and slow ports.
-        Waveforms are normalized from -1 to +1 and scaled by the amplitude.
+        Create and upload arbitrary sawtooth waveforms to the fast ports.
+        Waveform is normalized from -1 to +1 and scaled by the fov ratio.
         """
+
+        # time length of the buffer in seconds, slow signal will have this period
         period_slow = self.get_buffer_time_length_from_decimation()
 
+        # calculate the period of the fast signal according
         period_fast = period_slow/(self.buffer_size/self.image_size) # width of a pulse in seconds
         freq_fast =  1/period_fast # related to the length of the pulse (1/frequency)
 
         # fast waveform
-        points = self.buffer_size # number of total samples, must be this value
-        signal_fast = np.linspace(-1, 1, points) # transition -1 -> 1
-        data_str_fast = ','.join(f'{x:.5f}' for x in signal_fast) # convert to string
+        points = self.buffer_size # number of points should be the size of the buffer
+        signal_fast = np.linspace(-1, 1, points) # ramp with transition -1 -> 1
+        data_str_fast = ','.join(f'{x:.5f}' for x in signal_fast) # convert to string to send
 
         self.fast_port.set_waveform(data_str_fast)          # must come before setting type
-        self.fast_port.set_waveform_type("ARBITRARY")
-        self.fast_port.set_fequency(freq_fast)
-        self.fast_port.set_amplitude(self.fov_ratio)
+        self.fast_port.set_waveform_type("ARBITRARY")       # set waveform type
+        self.fast_port.set_fequency(freq_fast)              # set frequency to get appropriate period
+        self.fast_port.set_amplitude(self.fov_ratio)        # set amplitude to get appropriate fov
 
         # slow waveform will be set during acquisition since it is changing for each block
+        # depending on the image size, many acquisition of buffers will be needed to sample
+        # the fluorescence signal for every pixel. This is done in acquire_image() function.
 
     def enable_acquisition(self) -> None:
         """
-        Start the acquisition engine and begin listening for triggers.
+        Start the acquisition engine and start listening for trigger.
         """
         self.acquisition.start()
 
@@ -280,7 +295,7 @@ class ConfocalMicroscope:
     
     def reset_acquisition(self) -> None:
         """
-        Reset the acquisition engine
+        Reset the acquisition engine.
         """
         self.acquisition.reset()
 
@@ -303,7 +318,7 @@ class ConfocalMicroscope:
         4) Wait for trigger and buffer update
         5) Retrieve buffer
 
-        The full image is then built using all buffers. The image is normalized from 0 to 255.
+        The full image is then built using all buffers. The image is normalized from 0 to 255 by default.
 
         Parameters
         -------
@@ -311,7 +326,7 @@ class ConfocalMicroscope:
             progress bar will be shown during acquisition if True
 
         normalize_image : bool
-            image will be normalized in range 0-255 is True
+            image will be normalized in range 0-255 if True
 
         Returns
         -------
@@ -319,22 +334,24 @@ class ConfocalMicroscope:
             2D image of shape (self.image_size, self.image_size)
         """
 
+        # set the period of the slow signal to match decimation
         period_slow = self.get_buffer_time_length_from_decimation()
         freq_slow =  1/period_slow # related to the length of the pulse (1/frequency)
         
+        # create a 2d array for slow signals for each acquisition buffer
         points_slow = self.image_size * self.image_size # number of data points for a full image
         n_buffers = points_slow//self.buffer_size  # number of buffers to acquire full image
 
-        signal_slow = np.linspace(-1, 1, points_slow) # transition -1 -> 1
-        signal_slow = signal_slow.reshape((n_buffers, self.buffer_size)) # matrix of slow signal for all 16 blocks
-        # image to save blocks
-        image_array = np.zeros(self.image_size*self.image_size)   
+        signal_slow = np.linspace(-1, 1, points_slow) # ramp with transition -1 -> 1 for entire acquisition
+        signal_slow = signal_slow.reshape((n_buffers, self.buffer_size)) # matrix of slow signal for all aquisition blocks
 
+        # image to save blocks acquired
+        image_array = np.zeros(self.image_size * self.image_size)   
 
-        # acquire all required blocks sequentially
+        # looping to acquire all required blocks sequentially with progress bar if wanted
         for i in tqdm(range(n_buffers), desc="Image acquisition", disable=(not show_progress)):
 
-            # update slow waveform
+            # update slow waveform for the current block with relevant parameter
             data_str_slow = ','.join(f'{x:.5f}' for x in signal_slow[i,:])
             self.slow_port.set_waveform(data_str_slow)          # must come before setting type
             self.slow_port.set_waveform_type("ARBITRARY")
@@ -359,16 +376,16 @@ class ConfocalMicroscope:
             # retreive data buffer
             buffer = self.acquisition.get_data_buffer(1)
 
-            # save buffer in image
+            # save buffer in image_array at the right position
             image_array[i*self.buffer_size: (i+1)*self.buffer_size] = buffer
 
-        # reshape image
+        # reshape image when all buffer are acquired
         image = image_array.reshape((self.image_size, self.image_size))
         
-        # flip image
+        # flip image to match physical orientation
         image = image[::-1,::-1]
 
-        # normalize image
+        # normalize image if specified
         if normalize_image:
             image_min = np.min(image)
             image_max = np.max(image)
@@ -380,7 +397,8 @@ class ConfocalMicroscope:
                             show_progress: bool = True,
                             normalize_image: bool = True) -> np.ndarray:
         """
-        Acquire multiple images sequentially.
+        Acquire multiple images sequentially. All-in-one function to 
+        simplify scripts.
 
         Parameters
         ----------
@@ -398,8 +416,10 @@ class ConfocalMicroscope:
         np.ndarray
             3D stack of images with shape (N, image size, image size).
         """
+        # initialize an empty image stack
         image_stack = np.zeros((number_of_images, self.image_size, self.image_size))
 
+        # acquire the images
         for i in range(number_of_images):
             image = self.acquire_image(show_progress=show_progress, normalize_image=normalize_image)
             image_stack[i, ...] = image
@@ -415,9 +435,13 @@ class ConfocalMicroscope:
         """
         Live plotting of continuous image acquisiton. A matplotlib window will
         appear and display the images continuously. The acquisition frequency will
-        be reduced since the figure needs to be updated.
+        be reduced since the figure needs to be updated. This function does not allow
+        saving of the images. It's only for visualization of the sample for alignment
+        or finding a good region of the sample.
 
         For faster acquisition, use aquire_many_images().
+        A red stop button is shown to exit continuous acquisition mode.
+        Pressing Ctrl+c will also exit continuous acquisition mode.
 
         Parameters
         ----------
@@ -429,7 +453,7 @@ class ConfocalMicroscope:
             progress bar will be shown during acquisition if True
 
         normalize_image : bool
-            image will be normalized in range 0-255 is True
+            image will be normalized in range 0-255 if True
 
         color_bar_max : int
             maximum value of the colorbar of the figure
@@ -440,7 +464,11 @@ class ConfocalMicroscope:
         colormpap: str
             matplotlib colormap of the figure
         """
+
         def stop_acquisition(event):
+            """
+            Callback function for the stop button
+            """
             print("Stop button pressed.")
             stop_flag["stop"] = True
 
@@ -464,19 +492,20 @@ class ConfocalMicroscope:
         stop_button = Button(stop_ax, "STOP", color='lightcoral', hovercolor='red')
         stop_button.on_clicked(stop_acquisition)
 
+        # continuous imaging loop to update with new images in real-time
         try:
-        # update figure with new image
             for i in range(n_images):
-
                 # break loop if stop button is clicked
                 if stop_flag["stop"]:
                     print("Stopping acquisition...")
                     break
 
+                # acquire the next image
                 image = self.acquire_image(
-                    show_progress=show_progress,
-                    normalize_image=normalize_image
-                )
+                                    show_progress=show_progress,
+                                    normalize_image=normalize_image)
+
+                # update image with new one
                 img_handle.set_data(image)
 
                 # add STOP button area
@@ -484,6 +513,7 @@ class ConfocalMicroscope:
                 stop_button = Button(stop_ax, "STOP", color='lightcoral', hovercolor='red')
                 stop_button.on_clicked(stop_acquisition)
     
+                # update figure
                 fig.canvas.draw_idle()
                 fig.canvas.flush_events()
 

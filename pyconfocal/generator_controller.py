@@ -3,12 +3,18 @@ from .scpi_controller import SCPIController
 
 class GeneratorController:
     """
-    High-level controller for managing all Red Pitaya signal generator ports.
+    Controller for managing all Red Pitaya signal generator ports.
 
     This class is responsible for actions that apply globally to the
     generator subsystem, such as resetting the generator hardware,
     controlling output enable state, managing debouncing behavior for
     external triggers, and issuing simultaneous triggers to all ports.
+
+    The class is meant to simplify the SCPI commands sending to the Red Pitaya.
+    Not all the possible commands are implemented.
+
+    It is recommended to read the list of supported SCPI commands from the Red 
+    Pitaya website to get all details.
 
     Parameters
     ----------

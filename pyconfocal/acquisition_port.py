@@ -9,6 +9,12 @@ class AcquisitionPort:
     This class wraps the SCPI interface for a specific analog input channel
     and provides methods to retrieve the acquisition buffer as a NumPy array.
 
+    The class is meant to simplify the SCPI commands sending to the Red Pitaya.
+    Not all the possible commands are implemented.
+
+    It is recommended to read the list of supported SCPI commands from the Red 
+    Pitaya website to get all details.
+
     Parameters
     ----------
     port_number : int
