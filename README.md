@@ -53,7 +53,7 @@ The details of each class can be found in the .py files. For more details on the
 Some general information on the SCPI server hosted by the Red Pitaya can be found on this [web page](https://redpitaya.readthedocs.io/en/latest/appsFeatures/remoteControl/scpi.html).
 
 ## Examples
-The [Examples](examples/) folder contains a few simple example scripts for image acquisition using the package. The IP address of the Red Pitaya needs to be specified in the code before being able to run the script (and the saving path if needed). An example script can be run using:
+The [examples](examples/) folder contains a few simple example scripts for image acquisition using the package. The IP address of the Red Pitaya needs to be specified in the code before being able to run the script (and the saving path if needed). An example script can be run using:
 ```bash
 cd PyConfocal
 python -m examples.acquire_single_image
