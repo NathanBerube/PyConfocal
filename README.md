@@ -63,4 +63,6 @@ from the **root of the repository**. Change the example file name to the approri
 # Notes
 - The code was only tested on a StemLab 125-14 Red Pitaya. Using the package on another version might not result in expected outcomes.
 
+
+Nathan Bérubé, December 2025
   
