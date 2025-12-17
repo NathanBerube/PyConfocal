@@ -26,7 +26,9 @@ class ConfocalMicroscope:
     The class was only tested with a StemLab 125-14 Red Pitaya.
     """
 
-    def __init__(self, red_pitaya_ip: str, trigger_pin_name: str) -> None:
+    def __init__(self, red_pitaya_ip: str,
+                trigger_pin_name: str,
+                acquisition_port_number: int = 1) -> None:
         """
         Initialize the confocal microscope system.
 
@@ -36,7 +38,28 @@ class ConfocalMicroscope:
             IP address of the Red Pitaya board.
         trigger_pin_name : str
             Name of the digital pin used for external triggering.
+        acquisition_port_number : int
+            acquisition port number on the Red Pitaya (1 or 2 on StemLab 125-14)
+
+        Raises:
+        ----------
+        ValueError
+            If trigger pin name is not in valid names (see trigger_pin_name_list)
+        
+        ValueError
+            If acquisition port number is not in valid numbers (1 or 2)
         """
+        trigger_pin_name_list = ['DIO0_N', 'DIO1_N', 'DIO2_N',
+                                'DIO3_N', 'DIO4_N', 'DIO5_N',
+                                'DIO6_N', 'DIO7_N']
+
+        if trigger_pin_name not in trigger_pin_name_list:
+            raise ValueError(f"Trigger pin name not in valid names: {trigger_pin_name_list}")
+        
+        if acquisition_port_number not in [1,2]:
+            raise ValueError(f"Acquisition port number not in valid values (1 or 2 on StemLab 125-14)")
+        
+
         # SCPI controller object to send SCPI commands to the Red Pitaya
         self.scpi_controller = SCPIController(red_pitaya_ip)
 
@@ -51,8 +74,10 @@ class ConfocalMicroscope:
         self.slow_port = GeneratorPort(2, self.scpi_controller) # slow sweeping port
 
         # Object to control the acquisition
+        self.acquisition_port_number = acquisition_port_number
         self.acquisition = AcquisitionController(self.scpi_controller)
-        self.acquisition.add_port(AcquisitionPort(1, self.scpi_controller))
+        self.acquisition.add_port(AcquisitionPort(self.acquisition_port_number,
+                                                self.scpi_controller))
 
         # Default parameters of the microscope
         self.image_size = 128 # default image size is 128x128
@@ -374,7 +399,7 @@ class ConfocalMicroscope:
             self.acquisition.wait_for_buffer_update()
             
             # retreive data buffer
-            buffer = self.acquisition.get_data_buffer(1)
+            buffer = self.acquisition.get_data_buffer(self.acquisition_port_number)
 
             # save buffer in image_array at the right position
             image_array[i*self.buffer_size: (i+1)*self.buffer_size] = buffer
