@@ -30,7 +30,7 @@ class ConfocalMicroscope:
                 trigger_pin_name: str,
                 acquisition_port_number: int = 1) -> None:
         """
-        Initialize the confocal microscope system.
+        Initialize the confocal microscope system
 
         Parameters
         ----------
