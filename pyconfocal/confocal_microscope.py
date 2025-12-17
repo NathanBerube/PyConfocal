@@ -49,9 +49,9 @@ class ConfocalMicroscope:
         ValueError
             If acquisition port number is not in valid numbers (1 or 2)
         """
-        trigger_pin_name_list = ['DIO0_N', 'DIO1_N', 'DIO2_N',
-                                'DIO3_N', 'DIO4_N', 'DIO5_N',
-                                'DIO6_N', 'DIO7_N']
+        trigger_pin_name_list = ['DIO0_P', 'DIO1_P', 'DIO2_P',
+                                'DIO3_P', 'DIO4_P', 'DIO5_P',
+                                'DIO6_P', 'DIO7_P']
 
         if trigger_pin_name not in trigger_pin_name_list:
             raise ValueError(f"Trigger pin name not in valid names: {trigger_pin_name_list}")
