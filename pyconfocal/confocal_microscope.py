@@ -301,7 +301,7 @@ class ConfocalMicroscope:
         self.fast_port.set_waveform_type("ARBITRARY")       # set waveform type
         self.fast_port.set_fequency(freq_fast)              # set frequency to get appropriate period
         self.fast_port.set_amplitude(self.fov_ratio)        # set amplitude to get appropriate fov
-
+        self.fast_port.set_default_last_voltage(-self.fov_ratio)
         # slow waveform will be set during acquisition since it is changing for each block
         # depending on the image size, many acquisition of buffers will be needed to sample
         # the fluorescence signal for every pixel. This is done in acquire_image() function.
