@@ -8,9 +8,15 @@ For a complete control of a sweeping confocal microscope with a Red Pitaya using
 - [Notes](#notes)
 
 ## Installation
+#### Download
 It is possible to download the package directly from the GitHub repository on your computer using:
 ```bash
 pip install git+https://github.com/NathanBerube/PyConfocal.git
+```
+#### Update
+It is possible to update your version of the package using:
+```bash
+pip install --upgrade git+https://github.com/NathanBerube/PyConfocal.git
 ```
 
 ## Usage
