@@ -18,6 +18,12 @@ It is possible to update your version of the package using:
 ```bash
 pip install --upgrade git+https://github.com/NathanBerube/PyConfocal.git
 ```
+#### Delete and reinstall
+If you are facing any issues with the package version, delete and reinstall using:
+```bash
+pip uninstall pyconfocal
+pip install git+https://github.com/NathanBerube/PyConfocal.git
+```
 
 ## Usage
 
