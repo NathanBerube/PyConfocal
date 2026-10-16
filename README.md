@@ -27,7 +27,7 @@ pip install git+https://github.com/NathanBerube/PyConfocal.git
 
 ## Usage
 
-The package offers 7 classes for the control of the Red Pitaya. Six of them are for direct control of the Red Pitaya and are completely independent fom the microscope itself. they could be use The other one, the See [`ConfocalMicroscope`](confocal_microscope.py) class, is an all-in-one class to acquire images with the microscope and specify desired acquisition parameters. Here is a summary of all classes purposes.
+The package offers 7 classes for the control of the Red Pitaya. Six of them are for direct control of the Red Pitaya and are completely independent fom the microscope itself. The [`ConfocalMicroscope`](confocal_microscope.py) class, is an all-in-one class to acquire images with the microscope and specify desired acquisition parameters. Here is a summary of all classes purposes.
 
 - [`AcquisitionController`](acquisition_controller.py): Manages multiple acquisition ports on a Red Pitaya and provides
     control of the acquisition system through SCPI commands. This class allows configuration of acquisition parameters, including
